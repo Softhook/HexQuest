@@ -3,16 +3,16 @@
 const HEX_SIZE = 25; // Adjusted size for better visibility
 const NUM_DICE = 4; // Default can increase with horses
 const numberSpearman = 0;
-const numberArchers = 0;
+const numberArchers = 6;
 const numberDragons = 0;
 const numberHorses = 4;
 const teleporters = true;
 const castleCount = 2;
-const numberShips = 5;
+const numberShips = 0;
 const numberTreasure = 8;
-const numberTraps = 10;
-const numberBowDefenders = 2;
-const numberSeaMonsters = 1;
+const numberTraps = 0;
+const numberBowDefenders = 0;
+const numberSeaMonsters = 0;
 
 let seedInput, generateSeedButton;
 let seed = 0; // Default seed
@@ -1121,6 +1121,7 @@ class Archer extends enemy {
   constructor(hex) {
     super(hex);
     this.attackRange = 2; // Archer can attack up to 2 hexes
+    this.hasAttackedThisTurn = false;
   }
 
   /**
@@ -2455,56 +2456,6 @@ if (hex.type === 'teleporter' && !hasTeleportedThisMove) {
   rollButton.show();
 }
   
-// Adjusted endTurn() function
-function endTurn() {
-  // Reset highlighted hexes
-  for (let hex of hexGrid) {
-    hex.highlighted = false;
-  }
-
-  // Check if all players are defeated
-  if (players.every(player => !player.alive)) {
-    gamePhase = 'end';
-    gameResult = 'defeat';
-    nextButton.show(); // Show Next button to proceed to game over
-    return;
-  }
-
-  // Determine if the battle was initiated during the enemies' turn
-  if (gamePhase === 'battle' || gamePhase === 'battleEnd') {
-    if (enemiesHaveMoved) {
-      // Battle was during enemies' turn
-      // Reset for new round
-      enemiesHaveMoved = false;
-      for (let player of players) {
-        player.hasMoved = false;
-      }
-      // Set game phase to player's turn
-      gamePhase = 'roll';
-      currentPlayerIndex = players.findIndex(player => player.alive);
-    } else {
-      // Battle was during player's turn
-      // Mark that the current player has finished their turn
-      players[currentPlayerIndex].hasMoved = true;
-      proceedToNextPlayerOrenemy();
-    }
-  } else {
-    // Not in battle
-    // Mark that the current player has finished their turn
-    players[currentPlayerIndex].hasMoved = true;
-    proceedToNextPlayerOrenemy();
-  }
-
-  // Reset battle variables
-  diceRolls = [];
-  selectedDiceIndices = [];
-  message = '';
-  enemyDefeated = false;
-  playerDefeated = false;
-
-  nextButton.hide();
-  rollButton.show();
-}
   
   nextButton.hide(); // Initially hide the Next button
 
@@ -2888,6 +2839,8 @@ function endTurn() {
 
   // Check if all alive players have moved
   if (players.filter(player => player.alive).every(player => player.hasMoved)) {
+
+
     // All players have moved; reset hasMoved flags
     for (let player of players) {
       player.hasMoved = false;
@@ -2902,6 +2855,11 @@ function endTurn() {
     // Handle battle phase if a battle was initiated
     if (gamePhase !== 'battle') {
       // No battle, proceed to the next round
+
+        for (let e of enemies) {
+      e.hasAttackedThisTurn = false;
+    }
+
       gamePhase = 'roll';
       // Reset currentPlayerIndex to the first alive player
       currentPlayerIndex = players.findIndex(player => player.alive);
@@ -2926,6 +2884,10 @@ function endTurn() {
   nextButton.hide();
   rollButton.show();
 }
+
+
+
+
 
 /**
  * Rolls the dice for the current player.
@@ -3194,6 +3156,8 @@ function checkForBattles() {
     for (let enemy of enemies) {
       if (!enemy.alive) continue; // Skip dead enemies
 
+      if (enemy.hasAttackedThisTurn) continue;
+
       let distance = cubeDistance(player, enemy);
 
       if (enemy.attackRange && distance <= enemy.attackRange) {
@@ -3202,6 +3166,7 @@ function checkForBattles() {
         gamePhase = 'battle';
         selectionPhase = false;
         initiateBattle(player, enemy);
+        enemy.hasAttackedThisTurn = true; // mark that this enemy has attacked
         return; // Handle one battle at a time
       } else if (!enemy.attackRange && distance === 0) {
         // Enemies without attack range attack if on the same hex
