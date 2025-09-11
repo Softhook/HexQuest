@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Module Test</title>
+</head>
+<body>
+    <h1>Module Import Test</h1>
+    <div id="output"></div>
+    <script type="module">
+        try {
+            import('./config/GameConfig.js').then(module => {
+                console.log('GameConfig loaded:', module);
+                document.getElementById('output').innerHTML += 'GameConfig loaded successfully<br>';
+            }).catch(err => {
+                console.error('Error loading GameConfig:', err);
+                document.getElementById('output').innerHTML += 'Error loading GameConfig: ' + err.message + '<br>';
+            });
+            
+            import('./utils/MathUtils.js').then(module => {
+                console.log('MathUtils loaded:', module);
+                document.getElementById('output').innerHTML += 'MathUtils loaded successfully<br>';
+            }).catch(err => {
+                console.error('Error loading MathUtils:', err);
+                document.getElementById('output').innerHTML += 'Error loading MathUtils: ' + err.message + '<br>';
+            });
+        } catch (err) {
+            console.error('Import error:', err);
+            document.getElementById('output').innerHTML += 'Import error: ' + err.message + '<br>';
+        }
+    </script>
+</body>
+</html>
