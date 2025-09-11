@@ -11,15 +11,22 @@ export class Treasure extends BaseEntity {
 
   /**
    * Displays the treasure.
-   * @param {p5.Graphics} pg - The graphics context to draw on.
    */
-  display(pg = window) {
+  display() {
     if (this.collected) return;
 
-    pg.fill(255, 223, 0);
-    pg.strokeWeight(2);
-    pg.stroke(0);
-    pg.ellipse(this.x, this.y, GameConfig.HEX_SIZE / 2, GameConfig.HEX_SIZE / 2);
+    push();
+    fill(255, 223, 0);
+    strokeWeight(2);
+    stroke(0);
+    ellipse(this.x, this.y, GameConfig.HEX_SIZE / 2, GameConfig.HEX_SIZE / 2);
+    
+    // Draw treasure symbol
+    fill(0);
+    textAlign(CENTER, CENTER);
+    textSize(10);
+    text('$', this.x, this.y);
+    pop();
   }
 
   /**

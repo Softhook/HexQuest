@@ -160,8 +160,8 @@ export class Hexagon {
   }
 
   /**
-   * Displays the hexagon along with its bushes and trees.
-   * @param {p5.Graphics} pg - The graphics context to draw on.
+  /**
+   * Displays the hexagon along with its terrain features.
    */
   display() { // Draw directly to main canvas
     push();
@@ -181,7 +181,70 @@ export class Hexagon {
     }
     endShape(CLOSE);
 
-    pop();
+    // Draw castle graphic if hex is a castle
+    if (this.type === 'castle') {
+      this.drawCastle();
+    }
+
+    // Draw castle vicinity stripes if applicable
+    if (this.castleVicinity) {
+      if (this.type !== 'castle') {
+        this.drawCastleVicinityStripes();
+      }
+    }
+
+    // Draw bushes for grass hexes
+    if (this.type === 'grass') {
+      this.drawBushes();
+    }
+
+    // Draw trees for forest hexes
+    if (this.type === 'forest') {
+      this.drawTreesOutlines();
+    }
+    
+    // Draw swamp reed bushes
+    if (this.type === 'swamp') {
+      this.drawReedBushes();
+    }
+    
+    // Draw mountains graphic if hex is a mountain
+    if (this.type === 'mountain') {
+      this.drawMountains();
+    }
+    
+    // Render teleporters
+    if (this.type === 'teleporter') {
+      strokeWeight(2);
+      stroke(255);
+      beginShape();
+      for (let a = 0; a < Math.PI * 2; a += 0.1) {
+        let r = this.size * 0.5 * (1 + 0.3 * Math.sin(4 * a));
+        let sx = r * Math.cos(a);
+        let sy = r * Math.sin(a);
+        vertex(sx, sy);
+      }
+      endShape(); 
+    }
+    
+    // Draw traps if present
+    if (this.hasTrap) {
+      this.drawTrap();
+    }
+
+    // If highlighted, overlay a semi-transparent highlight
+    if (this.highlighted) {
+      fill(255, 255, 0, 100); // Semi-transparent yellow
+      noStroke(); // Remove stroke for highlight overlay
+
+      beginShape();
+      for (let i = 0; i < 6; i++) {
+        let angle = Math.PI * 2 / 6 * i;
+        vertex(this.size * Math.cos(angle), this.size * Math.sin(angle));
+      }
+      endShape(CLOSE);
+    }
+
     pop();
   }
 
@@ -238,10 +301,9 @@ export class Hexagon {
 
   /**
    * Draws diagonal stripes indicating castle vicinity.
-   * @param {p5.Graphics} pg - The graphics context to draw on.
    */
-  drawCastleVicinityStripes(pg) {
-    pg.push();
+  drawCastleVicinityStripes() {
+    push();
 
     // Define the hexagon vertices
     let hexVertices = [];
@@ -257,8 +319,8 @@ export class Hexagon {
     let maxY = Math.max(...hexVertices.map(v => v.y));
 
     // Set the stripe properties
-    pg.stroke(255, 128, 128); // Semi-transparent grey
-    pg.strokeWeight(1);
+    stroke(255, 128, 128); // Semi-transparent grey
+    strokeWeight(1);
     let stripeSpacing = 8;
 
     // Draw diagonal stripes within the hexagon
@@ -293,24 +355,23 @@ export class Hexagon {
       for (let i = 0; i < intersections.length - 1; i += 2) {
         let p1 = intersections[i];
         let p2 = intersections[i + 1];
-        pg.line(p1.x, p1.y, p2.x, p2.y);
+        line(p1.x, p1.y, p2.x, p2.y);
       }
     }
 
-    pg.pop();
+    pop();
   }
 
   /**
    * Draws traps on the hexagon as red spikes.
-   * @param {p5.Graphics} pg - The graphics context to draw on.
    */
-  drawTrap(pg) {
-    pg.push();
-    pg.translate(0, 0); // Center of the hex
+  drawTrap() {
+    push();
+    translate(0, 0); // Center of the hex
 
     // Draw red spikes sticking up
-    pg.fill(255, 0, 0); // Red color for traps
-    pg.noStroke();
+    fill(255, 0, 0); // Red color for traps
+    noStroke();
 
     let spikeHeight = this.size * 0.5;
     let spikeWidth = this.size * 0.2;
@@ -318,60 +379,58 @@ export class Hexagon {
 
     for (let i = 0; i < spikeCount; i++) {
       let angle = Math.PI * 2 / spikeCount * i - Math.PI / 2; // Start pointing upwards
-      pg.push();
-      pg.rotate(angle);
-      pg.beginShape();
-      pg.vertex(0, 0);
-      pg.vertex(spikeWidth / 2, -spikeHeight);
-      pg.vertex(-spikeWidth / 2, -spikeHeight);
-      pg.endShape(pg.CLOSE);
-      pg.pop();
+      push();
+      rotate(angle);
+      beginShape();
+      vertex(0, 0);
+      vertex(spikeWidth / 2, -spikeHeight);
+      vertex(-spikeWidth / 2, -spikeHeight);
+      endShape(CLOSE);
+      pop();
     }
 
-    pg.pop();
+    pop();
   }
 
   /**
    * Draws monochrome mountain graphics on mountain hexes.
-   * @param {p5.Graphics} pg - The graphics context to draw on.
    */
-  drawMountains(pg) {
-    pg.push();
+  drawMountains() {
+    push();
 
     // Sort mountains by baseWidth to draw larger layers first
     this.mountains.sort((a, b) => b.baseWidth - a.baseWidth);
 
-    pg.stroke(0);
+    stroke(0);
     // Set the fill color for the mountain layer
-    pg.fill(139, 69, 19);
+    fill(139, 69, 19);
   
     for (let mountain of this.mountains) {
-      pg.push();
-      pg.translate(mountain.x, mountain.y);
+      push();
+      translate(mountain.x, mountain.y);
 
       // Draw the triangular mountain layer
-      pg.beginShape();
-      pg.vertex(-mountain.baseWidth / 2, 0); // Left base
-      pg.vertex(mountain.baseWidth / 2, 0);  // Right base
-      pg.vertex(0, -mountain.height);        // Apex
-      pg.endShape(pg.CLOSE);
+      beginShape();
+      vertex(-mountain.baseWidth / 2, 0); // Left base
+      vertex(mountain.baseWidth / 2, 0);  // Right base
+      vertex(0, -mountain.height);        // Apex
+      endShape(CLOSE);
 
-      pg.pop();
+      pop();
     }
 
-    pg.pop();
+    pop();
   }
   
   /**
    * Draws reed bushes on swamp hexes as static bushes.
-   * @param {p5.Graphics} pg - The graphics context to draw on.
    */
-  drawReedBushes(pg) {
-    pg.push();
+  drawReedBushes() {
+    push();
 
     // Define reed properties
-    pg.stroke(0, 150); // Black color for reeds
-    pg.strokeWeight(1);
+    stroke(0, 150); // Black color for reeds
+    strokeWeight(1);
 
     for (let reed of this.reeds) {
       let { x, y, angle, length } = reed;
@@ -381,67 +440,64 @@ export class Hexagon {
       let endY = y + length * Math.sin(angle);
 
       // Draw the main reed stem
-      pg.line(x, y, endX, endY);
+      line(x, y, endX, endY);
     }
 
-    pg.pop();
+    pop();
   }
 
   /**
    * Draws all bushes stored in the bushes array.
-   * @param {p5.Graphics} pg - The graphics context to draw on.
    */
-  drawBushes(pg) {
-    pg.noFill();
-    pg.stroke(0, 100); // Black outline for bushes
-    pg.strokeWeight(1);
-    pg.fill(124, 200, 0);
+  drawBushes() {
+    noFill();
+    stroke(0, 100); // Black outline for bushes
+    strokeWeight(1);
+    fill(124, 200, 0);
 
     for (let bush of this.bushes) {
-      pg.ellipse(bush.x, bush.y, bush.width, bush.height);
+      ellipse(bush.x, bush.y, bush.width, bush.height);
     }
   }
 
   /**
    * Draws all tree outlines stored in the trees array.
-   * @param {p5.Graphics} pg - The graphics context to draw on.
    */
-  drawTreesOutlines(pg) {
-    pg.noFill();
-    pg.stroke(0); // Black outline for trees
-    pg.strokeWeight(1);
+  drawTreesOutlines() {
+    noFill();
+    stroke(0); // Black outline for trees
+    strokeWeight(1);
 
     for (let tree of this.trees) {
-      this.drawSimpleTree(pg, tree.x, tree.y, tree.type);
+      this.drawSimpleTree(tree.x, tree.y, tree.type);
     }
   }
 
   /**
    * Draws a simple tree outline based on its type.
-   * @param {p5.Graphics} pg - The graphics context to draw on.
    * @param {number} x - X-coordinate relative to hex center.
    * @param {number} y - Y-coordinate relative to hex center.
    * @param {string} type - Type of the tree ('pine' or 'oak').
    */
-  drawSimpleTree(pg, x, y, type) {
-    pg.push();
-    pg.translate(x, y);
-    pg.fill(34, 139, 34);
+  drawSimpleTree(x, y, type) {
+    push();
+    translate(x, y);
+    fill(34, 139, 34);
 
     if (type === 'pine') {
       // Draw Pine Tree Outline
-      pg.beginShape();
-      pg.vertex(-10, 0);
-      pg.vertex(10, 0);
-      pg.vertex(0, -30);
-      pg.endShape(pg.CLOSE);
+      beginShape();
+      vertex(-10, 0);
+      vertex(10, 0);
+      vertex(0, -30);
+      endShape(CLOSE);
     } else if (type === 'oak') {
       // Draw Oak Tree Outline
-      pg.line(0, 0, 0, -20); // Trunk
+      line(0, 0, 0, -20); // Trunk
       // Foliage as a circle
-      pg.ellipse(0, -25, 20, 15);
+      ellipse(0, -25, 20, 15);
     }
 
-    pg.pop();
+    pop();
   }
 }

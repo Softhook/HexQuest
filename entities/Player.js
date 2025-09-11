@@ -85,38 +85,37 @@ export class Player extends BaseEntity {
 
   /**
    * Displays the player.
-   * @param {p5.Graphics} pg - The graphics context to draw on.
    */
-  display(pg = window) {
+  display() {
     if (!this.alive) return; // Do not display if dead
 
-    // Note: This requires getHexAt function to be available
-    // For now, we'll use the current position
-    if (typeof getHexAt !== 'undefined') {
-      let hex = getHexAt(this.gridX, this.gridY, this.gridZ);
-      if (!hex) return;
-    }
-
-    pg.fill(this.color);
-    pg.noStroke();
-    pg.ellipse(this.x, this.y, GameConfig.HEX_SIZE * 1.8, GameConfig.HEX_SIZE * 1.8);
+    push();
     
-    // Draw knight SVG if available
-    if (typeof svgKnight !== 'undefined') {
-      pg.image(svgKnight, this.x - 24, this.y - 30, 52, 52);
-    }
+    // Draw player as a large colored circle
+    fill(this.color || GameConfig.COLORS.PLAYER_1);
+    stroke(0);
+    strokeWeight(2);
+    ellipse(this.x, this.y, GameConfig.HEX_SIZE * 1.2, GameConfig.HEX_SIZE * 1.2);
+    
+    // Draw player number
+    fill(255);
+    textAlign(CENTER, CENTER);
+    textSize(12);
+    text(`P${this.index + 1}`, this.x, this.y);
     
     // Draw ship icon if player has a ship
     if (this.hasShip) {
-      pg.fill(255);
-      pg.noStroke();
-      let shipSize = GameConfig.HEX_SIZE / 1.5;
-      pg.triangle(
-        this.x, this.y - shipSize / 2,
-        this.x - shipSize / 2, this.y + shipSize / 2,
-        this.x + shipSize / 2, this.y + shipSize / 2
+      fill(255);
+      noStroke();
+      let shipSize = GameConfig.HEX_SIZE / 3;
+      triangle(
+        this.x, this.y - shipSize / 2 - 15,
+        this.x - shipSize / 2, this.y + shipSize / 2 - 15,
+        this.x + shipSize / 2, this.y + shipSize / 2 - 15
       );
     }
+    
+    pop();
   }
 
   /**
